@@ -1,18 +1,27 @@
-import { pool } from '../db/pool.js';
+import { db } from '../db/knex.js';
 
 /**
  * Find an active user by email, joining their role name.
  * Only users with is_active = true are returned.
+ *
+ * @param {string} email
+ * @returns {Promise<{id: number, email: string, name: string, is_active: boolean, role: string} | null>}
  */
 export async function findActiveUserByEmail(email) {
-  const query = `
-    SELECT u.id, u.email, u.name, u.is_active, r.name AS role
-    FROM users u
-    LEFT JOIN roles r ON u.role_id = r.id
-    WHERE LOWER(u.email) = LOWER($1) AND u.is_active = true
-    LIMIT 1;
-  `;
-  const result = await pool.query(query, [email]);
-  return result.rows[0] || null;
-}
+  if (!email) return null;
 
+  const user = await db('users as u')
+    .leftJoin('roles as r', 'u.role_id', 'r.id')
+    .select(
+      'u.id',
+      'u.email',
+      'u.name',
+      'u.is_active',
+      'r.name as role'
+    )
+    .whereRaw('LOWER(u.email) = LOWER(?)', [email])
+    .andWhere('u.is_active', true)
+    .first();
+
+  return user || null;
+}

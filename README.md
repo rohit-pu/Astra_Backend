@@ -32,7 +32,7 @@ Astra Backend is an academic and student management REST API built with Node.js,
 ## Tech Stack
 - **Runtime**: Node.js (v18+)
 - **Framework**: Express.js (v4)
-- **Database**: PostgreSQL with `pg` (node-postgres)
+- **Database & Query Builder**: PostgreSQL with `pg` and `knex` (query builder)
 - **Authentication**: `google-auth-library`, `passport`, `passport-google-oauth20`, `jsonwebtoken`
 - **Utilities**: `cookie-parser`, `cors`, `dotenv`
 
@@ -50,10 +50,6 @@ Before setting up the backend, ensure you have the following installed:
 
 ```
 backend/
-├── database/
-│   └── scripts/
-│       ├── migrate.js        # Automated database migration (creates tables)
-│       └── seed.js           # Seeds standard roles and primary admin user
 ├── src/
 │   ├── config/
 │   │   ├── index.js          # App configuration loader and env validation
@@ -61,7 +57,7 @@ backend/
 │   ├── controllers/
 │   │   └── authController.js # Auth endpoints (login, Google callback, logout, me)
 │   ├── db/
-│   │   └── pool.js           # PostgreSQL connection pool with event listeners
+│   │   └── knex.js           # Shared Knex instance for backend queries
 │   ├── middleware/
 │   │   └── auth.js           # JWT authentication and role authorization middleware
 │   ├── routes/
@@ -69,7 +65,7 @@ backend/
 │   │   └── index.js          # Main API router aggregator
 │   ├── services/
 │   │   ├── authService.js    # Authentication tokens & session generation
-│   │   └── userService.js    # User lookups and active user queries
+│   │   └── userService.js    # Knex query builder queries for active users
 │   ├── app.js                # Express app setup, CORS, and middleware stack
 │   └── server.js             # HTTP server entrypoint
 ├── .env.example              # Sample environment configuration file
@@ -107,37 +103,41 @@ backend/
 
 ## Database Setup & Migrations
 
+Database schema migrations and seed data are managed independently in the `database/` package via Knex.js CLI. The `backend/` service connects to the database via its shared Knex instance solely to run application queries.
+
 ### 1. Create PostgreSQL Database
 Connect to your local PostgreSQL instance and create the database:
 ```sql
 CREATE DATABASE astra;
 ```
 
-### 2. Run Database Migrations
-Run the migration script to create the necessary tables (`roles` and `users`):
+### 2. Run Database Migrations and Seeds
+From the `database/` folder:
 ```bash
+cd ../database
+npm install
+
+# Run migrations
 npm run migrate
+
+# Roll back migrations if needed
+npm run migrate:rollback
+
+# Seed roles and admin user
+npm run seed
 ```
 
 **Schema Overview:**
 - **`roles`**:
   - `id` (SERIAL PRIMARY KEY)
-  - `name` (VARCHAR(50) UNIQUE NOT NULL) — e.g., `Student`, `Faculty`, `Admin`
-  - `description` (TEXT)
-  - `created_at` (TIMESTAMPTZ DEFAULT NOW())
+  - `name` (TEXT UNIQUE NOT NULL) — e.g., `Student`, `Faculty`, `Admin`
 - **`users`**:
   - `id` (SERIAL PRIMARY KEY)
-  - `email` (VARCHAR(255) UNIQUE NOT NULL)
-  - `name` (VARCHAR(255) NOT NULL)
+  - `email` (TEXT UNIQUE NOT NULL)
+  - `name` (TEXT)
   - `role_id` (INT REFERENCES roles(id))
   - `is_active` (BOOLEAN DEFAULT TRUE)
   - `created_at` (TIMESTAMPTZ DEFAULT NOW())
-
-### 3. Seed Initial Data
-Run the seed script to populate default roles (`Student`, `Faculty`, `Admin`) and seed the initial administrator user defined by `ADMIN_SEED_EMAIL`:
-```bash
-npm run seed
-```
 
 ---
 

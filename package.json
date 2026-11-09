@@ -6,9 +6,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "migrate": "node database/scripts/migrate.js",
-    "seed": "node database/scripts/seed.js"
+    "dev": "node --watch --watch-path=src src/server.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
@@ -16,9 +14,9 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.13.1"
   }
 }
-
