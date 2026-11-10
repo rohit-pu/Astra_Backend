@@ -1,6 +1,6 @@
 # Astra Backend
 
-Astra Backend is an academic and student management REST API built with Node.js, Express, PostgreSQL, and Google OAuth 2.0 authentication.
+Astra Backend is an academic and student management REST API built with Node.js, Fastify, PostgreSQL, Knex.js, and Google OAuth 2.0 authentication.
 
 ---
 
@@ -20,21 +20,23 @@ Astra Backend is an academic and student management REST API built with Node.js,
 ---
 
 ## Features
+- **High-Performance Fastify Architecture**: Ultra-low overhead, modern plugin and route registration model.
 - **Google OAuth 2.0 Authentication**: Secure authentication flow with Google Identity Services.
 - **Authorization Guard**: Restricts portal access only to active users pre-registered in the database.
-- **JWT Session Management**: Issues secure, `httpOnly`, `sameSite: 'lax'` cookies for seamless frontend integration.
-- **Role-Based Access Control (RBAC)**: Support for multiple roles (`Student`, `Faculty`, `Admin`).
-- **PostgreSQL Database Pool**: Resilient database connectivity with error handling and query logging.
+- **JWT Session Management**: Issues secure, `httpOnly`, `sameSite: 'lax'` cookies for seamless frontend integration via `@fastify/cookie`.
+- **Role-Based Access Control (RBAC)**: Support for multiple roles (`Student`, `Faculty`, `Admin`) using Fastify preHandler hooks.
+- **Knex.js Query Builder**: Resilient database connectivity with parameterized queries.
 - **Modular Architecture**: Layered architecture separating controllers, services, middleware, and database access.
 
 ---
 
 ## Tech Stack
 - **Runtime**: Node.js (v18+)
-- **Framework**: Express.js (v4)
+- **Framework**: Fastify (v5)
 - **Database & Query Builder**: PostgreSQL with `pg` and `knex` (query builder)
-- **Authentication**: `google-auth-library`, `passport`, `passport-google-oauth20`, `jsonwebtoken`
-- **Utilities**: `cookie-parser`, `cors`, `dotenv`
+- **Fastify Plugins**: `@fastify/cors`, `@fastify/cookie`, `@fastify/formbody`
+- **Authentication**: `jsonwebtoken`, native Google OAuth 2.0 Authorization Code flow
+- **Utilities**: `dotenv`
 
 ---
 
@@ -52,21 +54,20 @@ Before setting up the backend, ensure you have the following installed:
 backend/
 ├── src/
 │   ├── config/
-│   │   ├── index.js          # App configuration loader and env validation
-│   │   └── passport.js       # Passport Google OAuth strategy configuration
+│   │   └── index.js          # App configuration loader and env validation
 │   ├── controllers/
 │   │   └── authController.js # Auth endpoints (login, Google callback, logout, me)
 │   ├── db/
 │   │   └── knex.js           # Shared Knex instance for backend queries
 │   ├── middleware/
-│   │   └── auth.js           # JWT authentication and role authorization middleware
+│   │   └── auth.js           # JWT authentication and role authorization hooks
 │   ├── routes/
 │   │   ├── authRoutes.js     # Auth route declarations
 │   │   └── index.js          # Main API router aggregator
 │   ├── services/
 │   │   ├── authService.js    # Authentication tokens & session generation
 │   │   └── userService.js    # Knex query builder queries for active users
-│   ├── app.js                # Express app setup, CORS, and middleware stack
+│   ├── app.js                # Fastify app setup, CORS, and plugin registration
 │   └── server.js             # HTTP server entrypoint
 ├── .env.example              # Sample environment configuration file
 ├── .gitignore                # Git ignore rules (strictly ignores secrets and node_modules)

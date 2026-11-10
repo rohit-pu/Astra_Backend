@@ -2,38 +2,34 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
 
 /**
- * Middleware to verify JWT stored in the 'session' httpOnly cookie.
+ * Fastify preHandler hook to verify JWT stored in the 'session' httpOnly cookie.
  */
-export function requireAuth(req, res, next) {
-  const token = req.cookies?.session;
+export async function requireAuth(request, reply) {
+  const token = request.cookies?.session;
 
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return reply.status(401).send({ error: 'Authentication required' });
   }
 
   try {
     const decoded = jwt.verify(token, config.jwtSecret);
-    req.user = decoded;
-    return next();
+    request.user = decoded;
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired session' });
+    return reply.status(401).send({ error: 'Invalid or expired session' });
   }
 }
 
 /**
- * Middleware to restrict access by user role.
+ * Fastify preHandler hook to restrict access by user role.
  */
 export function requireRole(...roles) {
-  return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+  return async (request, reply) => {
+    if (!request.user) {
+      return reply.status(401).send({ error: 'Authentication required' });
     }
 
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    if (!roles.includes(request.user.role)) {
+      return reply.status(403).send({ error: 'Forbidden: Insufficient permissions' });
     }
-
-    return next();
   };
 }
-

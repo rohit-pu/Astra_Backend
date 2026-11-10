@@ -1,15 +1,14 @@
-import { Router } from 'express';
 import authRoutes from './authRoutes.js';
 
-const router = Router();
+/**
+ * Root route aggregator plugin for Fastify.
+ */
+export default async function rootRoutes(fastify, options) {
+  // Health check endpoint
+  fastify.get('/health', async (request, reply) => {
+    return reply.status(200).send('ok');
+  });
 
-// Health check endpoint
-router.get('/health', (req, res) => {
-  res.status(200).send('ok');
-});
-
-// Authentication routes
-router.use('/auth', authRoutes);
-
-export default router;
-
+  // Authentication routes mounted at /auth
+  await fastify.register(authRoutes, { prefix: '/auth' });
+}

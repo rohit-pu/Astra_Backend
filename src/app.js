@@ -1,26 +1,36 @@
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import passport from 'passport';
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import cookie from '@fastify/cookie';
+import formbody from '@fastify/formbody';
 import { config } from './config/index.js';
-import './config/passport.js';
 import routes from './routes/index.js';
 
-const app = express();
+/**
+ * Builds and configures the Fastify application.
+ */
+export async function buildApp(opts = {}) {
+  const app = Fastify({
+    logger: false,
+    ...opts
+  });
 
-app.use(
-  cors({
+  // CORS configuration for frontend integration
+  await app.register(cors, {
     origin: config.frontendUrl,
-    credentials: true
-  })
-);
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  });
 
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(passport.initialize());
+  // Cookie plugin for HTTP-only session cookies
+  await app.register(cookie);
 
-app.use('/', routes);
+  // Form body parsing for urlencoded payloads
+  await app.register(formbody);
 
-export default app;
+  // Register all application routes
+  await app.register(routes);
 
+  return app;
+}
+
+export default buildApp;
