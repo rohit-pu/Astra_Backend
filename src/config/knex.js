@@ -1,5 +1,5 @@
 import knex from 'knex';
-import { config } from '../config/index.js';
+import { config } from './index.js';
 
 /**
  * Shared Knex instance for backend queries.
